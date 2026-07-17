@@ -1,0 +1,11 @@
+{
+  "base": "/",
+  "routes": [
+    "/",
+    "/catalog",
+    "/thanks",
+    "/exhibit/001—100"
+  ],
+  "generatedRouteFiles": 102,
+  "hosting": "GitHub Pages user site"
+}
