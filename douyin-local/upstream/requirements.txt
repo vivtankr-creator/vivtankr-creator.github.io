@@ -1,0 +1,13 @@
+# Python依赖
+f2>=0.0.1.7
+playwright
+aiosqlite
+httpx
+
+# Web API依赖
+fastapi
+uvicorn[standard]
+pydantic
+
+# 异步文件操作
+aiofiles

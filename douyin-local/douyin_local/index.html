@@ -1,0 +1,28 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>抖音合集下载 · 本机</title>
+<style>body{font:16px system-ui;background:#f5f7fa;color:#192333;max-width:1100px;margin:40px auto;padding:0 24px}section{background:white;border:1px solid #dde3eb;border-radius:12px;padding:24px;margin:20px 0}textarea{width:100%;box-sizing:border-box;padding:14px;font:inherit}button,select{padding:10px 16px;margin:8px 8px 8px 0;font:inherit}button{background:#175bce;color:white;border:0;border-radius:6px;cursor:pointer}button:disabled{opacity:.45}table{border-collapse:collapse;width:100%}td,th{padding:12px;text-align:left;border-bottom:1px solid #eee;white-space:pre-wrap;overflow-wrap:anywhere}#notice{white-space:pre-wrap;background:#fff3cf;padding:16px;border-radius:8px}small{color:#586578}h1{margin-bottom:8px}</style>
+<h1>抖音合集批量下载</h1><small>仅在你的 Mac 运行 · 文件和登录状态保存在本机</small>
+<p id="notice" role="status">真实 Mac 下载尚未验证。请先登录，再查询正式合集；查询不会下载视频。</p>
+<section><h2>1. 本机登录与查询</h2><button id="login">打开抖音登录窗口</button><p>在可见浏览器中正常扫码登录。遇到验证码或 403 会暂停，请手动处理后重试。</p>
+<textarea id="url" rows="3" placeholder="粘贴合集任意一集链接或分享文案" aria-label="单集分享链接"></textarea><button id="lookup">查询正式合集</button>
+<p>恢复已有任务：<select id="history" aria-label="历史合集"><option value="">选择合集</option></select><button id="refresh">刷新任务列表</button></p></section>
+<section id="collection" hidden><h2>2. 确认合集</h2><p id="summary"></p><p><small id="ordering"></small></p>
+<label><input type="checkbox" id="consent">我确认合集信息正确，且有权下载这些作品。</label><p><button id="download">确认并开始 / 继续下载</button><button id="retry">重试失败和未完成剧集</button><button id="folder">打开输出文件夹</button></p>
+<h2>3. 逐集进度</h2><p id="counts"></p><table><thead><tr><th>集序</th><th>原始标题 / 文案</th><th>状态</th><th>错误</th></tr></thead><tbody id="rows"></tbody></table></section>
+<script>
+const token='__TOKEN__';let mix=null,busy=false;
+const el=id=>document.getElementById(id),tell=x=>el('notice').textContent=x;
+async function api(path,body){const r=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','X-Local-Token':token},body:body===undefined?undefined:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw Error(data.error||'请求失败，请重试');return data;}
+function render(data){mix=data.mix_id;el('collection').hidden=false;el('summary').textContent=`${data.mix_name} · ID ${data.mix_id} · 平台总数 ${data.expected_count??'未提供（不能确认齐全）'} · 已查询 ${data.discovered_count} 集`;
+el('ordering').textContent='顺序依据：'+(data.order_basis==='platform_episode'?'平台明确集序':'平台合集分页原始顺序（需在 Mac 核对）');
+el('counts').textContent=`任务 ${data.status} · 已校验 ${data.downloaded_count} · 失败 ${data.failed_count} · 未完成 ${data.missing_count} · ${data.complete?'清单与文件齐全':'尚未确认齐全'}`;
+el('rows').replaceChildren(...data.episodes.map(row=>{const tr=document.createElement('tr');[row.episode_order,[row.original_title,row.original_description].filter(x=>x!=null).join('\n'),row.download_status,row.error||''].forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.append(td)});return tr}));}
+async function run(fn){if(busy)return;busy=true;el('lookup').disabled=true;try{await fn()}catch(e){tell(e.message)}finally{busy=false;el('lookup').disabled=false}}
+async function history(){const list=await api('tasks');el('history').replaceChildren(new Option('选择合集',''),...list.map(x=>new Option(x.mix_name+' · '+x.status,x.mix_id)));}
+el('login').onclick=()=>run(async()=>tell((await api('login',{})).message));
+el('lookup').onclick=()=>run(async()=>{tell('正在查询正式合集和全部分页，请在浏览器留意登录状态…');render(await api('mix-info',{url:el('url').value}));el('consent').checked=false;tell('查询完成，请核对合集名称、数量和顺序后确认下载。');await history()});
+async function download(){if(!el('consent').checked)throw Error('请先勾选合集及下载授权确认');await api('download-mix',{mix_id:mix,confirmed:true});tell('任务已排队。只有逐集文件验证通过才会记为已下载。');}
+el('download').onclick=()=>run(download);el('retry').onclick=()=>run(download);
+el('folder').onclick=()=>run(async()=>tell((await api('open-folder',{mix_id:mix})).message));
+el('refresh').onclick=()=>run(history);el('history').onchange=()=>run(async()=>{if(el('history').value){render(await api('tasks/'+el('history').value));el('consent').checked=false;}});
+setInterval(async()=>{if(mix&&!busy){try{render(await api('tasks/'+mix))}catch(e){tell(e.message)}}},2000);history().catch(e=>tell(e.message));
+</script></html>

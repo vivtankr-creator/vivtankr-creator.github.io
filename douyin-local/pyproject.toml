@@ -1,0 +1,17 @@
+[project]
+name = "douyin-local"
+version = "0.1.0"
+description = "Mac localhost formal Douyin collection downloader"
+requires-python = ">=3.11,<3.13"
+dependencies = ["f2==0.0.1.7", "playwright==1.56.0", "fastapi==0.115.6", "uvicorn==0.34.0"]
+[dependency-groups]
+dev = ["ruff==0.14.1"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+[tool.ruff]
+exclude = ["upstream"]
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
