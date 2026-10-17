@@ -1,0 +1,24 @@
+name: Douyin local offline checks
+on:
+  push:
+    branches: ['codex/douyin-local']
+    paths: ['douyin-local/**', '.github/workflows/douyin-offline.yml']
+  pull_request:
+    paths: ['douyin-local/**', '.github/workflows/douyin-offline.yml']
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: douyin-local
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.9.4'
+      - run: uv sync --locked --python 3.12
+      - run: uv run --locked python -m pytest -q
+      - run: uv run --locked ruff check douyin_local tests
+      - run: for script in ./*.command; do bash -n "$script"; done

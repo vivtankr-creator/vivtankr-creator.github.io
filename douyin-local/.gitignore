@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+*.db
+*.log
+*cookie*
+!tests/test_auth.py
+.auth/
+Downloads/
+dist/
+!upstream/skills/douyin_downloader/cookie_manager.py

@@ -1,0 +1,17 @@
+# 独立仓库使用此工作流；交付到现有仓库时工作流位于仓库根 .github/workflows/douyin-offline.yml。
+name: Douyin offline checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.9.4'
+      - run: uv sync --locked --python 3.12
+      - run: uv run --locked python -m pytest -q
+      - run: uv run --locked ruff check douyin_local tests
+      - run: bash -n ./*.command
